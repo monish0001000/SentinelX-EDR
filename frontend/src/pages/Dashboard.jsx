@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
   Server, 
@@ -11,27 +11,63 @@ import {
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
-
-const mockTrendData = [
-  { time: '00:00', critical: 2, high: 5, medium: 12 },
-  { time: '04:00', critical: 1, high: 8, medium: 15 },
-  { time: '08:00', critical: 4, high: 12, medium: 25 },
-  { time: '12:00', critical: 7, high: 18, medium: 42 },
-  { time: '16:00', critical: 3, high: 10, medium: 30 },
-  { time: '20:00', critical: 1, high: 6, medium: 18 },
-  { time: '24:00', critical: 2, high: 4, medium: 14 },
-];
-
-const mockMitreData = [
-  { name: 'Execution', value: 85 },
-  { name: 'Persistence', value: 62 },
-  { name: 'Privilege Escalation', value: 45 },
-  { name: 'Defense Evasion', value: 92 },
-  { name: 'Credential Access', value: 54 },
-  { name: 'Lateral Movement', value: 38 },
-];
+import { getMetrics, getMttd, getAlerts } from '../services/api';
 
 const Dashboard = () => {
+  const [metrics, setMetrics] = useState({
+    total_alerts: 0,
+    mttd_seconds: 0,
+    mitre_coverage_pct: 0,
+    alerts_trend: [],
+    alerts_by_severity: {},
+    endpoint_coverage: { total: 0, online: 0 }
+  });
+  const [mttd, setMttd] = useState({ mttd_formatted: '0m 0s' });
+  const [recentAlerts, setRecentAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [metricsRes, mttdRes, alertsRes] = await Promise.all([
+          getMetrics(),
+          getMttd(),
+          getAlerts()
+        ]);
+        
+        setMetrics(metricsRes.data);
+        setMttd(mttdRes.data);
+        
+        // Sort alerts by created_at or id descending and take top 5
+        const sortedAlerts = alertsRes.data.sort((a, b) => b.id - a.id).slice(0, 5);
+        setRecentAlerts(sortedAlerts);
+        
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+    // In a real app, you might want to set up an interval to refresh data
+    const interval = setInterval(fetchDashboardData, 30000); // 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const mitreData = [
+    { name: 'Execution', value: 85 },
+    { name: 'Persistence', value: 62 },
+    { name: 'Privilege Escalation', value: 45 },
+    { name: 'Defense Evasion', value: 92 },
+    { name: 'Credential Access', value: 54 },
+    { name: 'Lateral Movement', value: 38 },
+  ]; // This could be replaced with real data from endpoint coverage metrics if available
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-full"><div className="animate-pulse text-primary">Loading Dashboard...</div></div>;
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -56,7 +92,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Active Alerts" 
-          value="142" 
+          value={metrics.total_alerts?.toString() || "0"} 
           icon={ShieldAlert} 
           trend="up" 
           trendValue="+12%"
@@ -64,7 +100,7 @@ const Dashboard = () => {
         />
         <StatCard 
           title="Monitored Endpoints" 
-          value="8,492" 
+          value={metrics.endpoint_coverage?.total?.toString() || "0"} 
           icon={Server} 
           trend="up" 
           trendValue="+24"
@@ -80,7 +116,7 @@ const Dashboard = () => {
         />
         <StatCard 
           title="Mean Time To Detect" 
-          value="4m 12s" 
+          value={mttd.mttd_formatted} 
           icon={TrendingUp} 
           trend="down" 
           trendValue="-30s"
@@ -101,7 +137,7 @@ const Dashboard = () => {
           </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={mockTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={metrics.alerts_trend.length > 0 ? metrics.alerts_trend : [{time: 'Now', critical:0, high:0, medium:0}]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorCritical" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
@@ -113,7 +149,7 @@ const Dashboard = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
-                <XAxis dataKey="time" stroke="#9CA3AF" tick={{fontSize: 12}} axisLine={false} tickLine={false} />
+                <XAxis dataKey="date" stroke="#9CA3AF" tick={{fontSize: 12}} axisLine={false} tickLine={false} />
                 <YAxis stroke="#9CA3AF" tick={{fontSize: 12}} axisLine={false} tickLine={false} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '0.5rem' }}
@@ -135,7 +171,7 @@ const Dashboard = () => {
           </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockMitreData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+              <BarChart data={mitreData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
                 <XAxis type="number" hide />
                 <YAxis dataKey="name" type="category" width={110} stroke="#9CA3AF" tick={{fontSize: 11}} axisLine={false} tickLine={false} />
@@ -145,7 +181,7 @@ const Dashboard = () => {
                 />
                 <Bar dataKey="value" fill="#8B5CF6" radius={[0, 4, 4, 0]} barSize={16}>
                   {
-                    mockMitreData.map((entry, index) => (
+                    mitreData.map((entry, index) => (
                       <cell key={`cell-${index}`} fill={entry.value > 80 ? '#EF4444' : entry.value > 60 ? '#F59E0B' : '#8B5CF6'} />
                     ))
                   }
@@ -157,26 +193,32 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Alerts List (Mock) */}
+        {/* Recent Alerts List */}
         <div className="glass-panel p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-textMain">Recent Critical Alerts</h3>
+            <h3 className="text-lg font-semibold text-textMain">Recent Alerts</h3>
             <button className="text-primary hover:text-primaryHover text-sm font-medium">View All</button>
           </div>
           <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-start p-3 bg-surfaceHighlight/50 rounded-lg hover:bg-surfaceHighlight transition-colors border border-border/50">
-                <div className="w-2 h-2 rounded-full bg-danger mt-2 flex-shrink-0"></div>
+            {recentAlerts.length > 0 ? recentAlerts.map((alert) => (
+              <div key={alert.id} className="flex items-start p-3 bg-surfaceHighlight/50 rounded-lg hover:bg-surfaceHighlight transition-colors border border-border/50">
+                <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                  alert.severity === 'critical' ? 'bg-danger' : 
+                  alert.severity === 'high' ? 'bg-warning' : 
+                  alert.severity === 'medium' ? 'bg-primary' : 'bg-accent'
+                }`}></div>
                 <div className="ml-3 flex-1">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-textMain">Suspicious PowerShell Download</p>
-                    <span className="text-xs text-textMuted">2m ago</span>
+                    <p className="text-sm font-medium text-textMain">{alert.title}</p>
+                    <span className="text-xs text-textMuted">{new Date(alert.detected_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                   </div>
-                  <p className="text-xs text-textMuted mt-1">HOST-WS-{i} • Defense Evasion</p>
+                  <p className="text-xs text-textMuted mt-1">{alert.endpoint_id} • {alert.mitre_tactic || alert.rule_type}</p>
                 </div>
                 <button className="ml-4 text-xs font-medium text-primary hover:text-primaryHover">Investigate</button>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-textMuted text-sm">No recent alerts found.</div>
+            )}
           </div>
         </div>
 

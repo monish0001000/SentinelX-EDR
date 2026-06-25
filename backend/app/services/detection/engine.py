@@ -44,6 +44,23 @@ class DetectionEngine:
         """Register a callback for when an alert is generated."""
         self.alert_callbacks.append(callback)
         
+    def process_telemetry(self, data: Dict[str, Any]) -> None:
+        """Process an entire telemetry ingest batch."""
+        from app.database import SessionLocal
+        
+        db = SessionLocal()
+        try:
+            endpoint_id = data.get("endpoint_id")
+            
+            for category in ["processes", "network_connections", "startup_items", "services", "scheduled_tasks", "user_sessions"]:
+                items = data.get(category, [])
+                for item in items:
+                    self.process_event(db, item, endpoint_id, category)
+        except Exception as e:
+            logger.error(f"Error processing telemetry batch: {e}")
+        finally:
+            db.close()
+        
     def process_event(self, db: Session, event: Dict[str, Any], endpoint_id: str, category: str) -> List[Alert]:
         """Process a single event through all detection mechanisms."""
         alerts = []

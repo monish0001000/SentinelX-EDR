@@ -31,6 +31,11 @@ def trigger_investigation(data: InvestigationTrigger, background_tasks: Backgrou
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pipeline failed: {str(e)}")
 
+@router.get("/", response_model=List[InvestigationResponse])
+def get_all_investigations(limit: int = 50, db: Session = Depends(get_db)) -> Any:
+    """Get all investigations."""
+    return db.query(Investigation).order_by(desc(Investigation.started_at)).limit(limit).all()
+
 @router.get("/{investigation_id}", response_model=InvestigationResponse)
 def get_investigation(investigation_id: str, db: Session = Depends(get_db)) -> Any:
     """Get the results of a specific investigation."""

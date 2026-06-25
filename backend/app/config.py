@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
     LOG_LEVEL: str = "INFO"
-    DEMO_MODE: bool = True  # Seeds sample data on startup
+    DEMO_MODE: bool = False  # Seeds sample data on startup
     API_V1_STR: str = "/api/v1"
 
     # ── Database ────────────────────────────────────────────────

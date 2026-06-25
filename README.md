@@ -3,16 +3,20 @@
 ![SentinelX EDR](https://img.shields.io/badge/SentinelX-EDR-3B82F6?style=for-the-badge)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![OSQuery](https://img.shields.io/badge/OSQuery-4A4A4A?style=for-the-badge&logo=linux)
 
-An advanced, AI-powered Endpoint Detection and Response (EDR) platform designed for modern Security Operations Centers (SOC). SentinelX integrates real-time telemetry collection, multi-layered threat detection, and a multi-agent AI pipeline to automatically investigate and respond to cyber threats.
+An advanced, AI-powered Endpoint Detection and Response (EDR) platform designed for modern Security Operations Centers (SOC). SentinelX integrates real-time telemetry collection using OSQuery, multi-layered threat detection, and a multi-agent AI pipeline to automatically investigate and respond to cyber threats.
 
 ## 🌟 Key Features
+
+### 📡 Live Telemetry Agent (OSQuery)
+- **Real-Time Ingestion**: A dedicated Python agent orchestrates `osqueryi` to stream live process, network, and system telemetry directly into the SentinelX backend.
+- **Automated Registration**: Endpoints register securely with the backend and provide regular heartbeats.
 
 ### 🔍 Threat Detection Engine
 - **Sigma Rules**: Custom engine to parse and evaluate standard Sigma YAML rules against live telemetry.
 - **IOC Matching**: Real-time matching against malicious IP addresses, domains, and file hashes.
-- **Behavioral Heuristics**: Detects advanced living-off-the-land (LotL) techniques, anomalous parent-child relationships, reverse shells, and credential dumping.
+- **Behavioral Heuristics**: Detects advanced living-off-the-land (LotL) techniques, anomalous parent-child relationships, reverse shells, and credential dumping in real-time as telemetry arrives.
 
 ### 🤖 Multi-Agent AI Pipeline
 Powered by Gemini 2.0 Flash (with OpenRouter fallbacks):
@@ -24,23 +28,26 @@ Powered by Gemini 2.0 Flash (with OpenRouter fallbacks):
 
 ### 📊 Modern SOC Dashboard
 - **Real-time Metrics**: View MTTD (Mean Time To Detect), alert volume, and system health in a sleek, dark-mode dashboard.
+- **WebSockets**: Live alerts instantly populate the dashboard without page refreshes.
 - **Threat Graph**: Interactive force-directed graph (D3.js) visualizing relationships between processes, users, and network connections.
 - **Attack Simulation**: Built-in benign simulation engine to validate detection coverage against realistic scenarios.
 - **Case Management**: Collaborate on investigations, track evidence, and generate SOC-ready markdown reports.
 
 ## 🏗️ Architecture
 
-SentinelX EDR is built on a modular, microservice-ready architecture:
+SentinelX EDR is built on a modular, microservice-ready architecture, currently deployed in a single cohesive repository:
 
-- **Frontend**: React (Vite), Tailwind CSS v3, Recharts, D3.js.
-- **Backend**: Python 3.11+, FastAPI, SQLAlchemy, Pydantic, WebSockets.
-- **Database**: SQLite (default for development/testing), fully compatible with PostgreSQL for production deployments.
+1. **Agent (`/agent`)**: Python 3.11 agent wrapping `osqueryi`. Collects telemetry and pushes to the backend via REST.
+2. **Backend (`/backend`)**: Python 3.11+, FastAPI, SQLAlchemy, Pydantic, WebSockets. Powered by an intelligent asynchronous `DetectionEngine` background task.
+3. **Frontend (`/frontend`)**: React (Vite), Tailwind CSS v3, Recharts, D3.js. High-performance, real-time dashboard.
+4. **Database**: SQLite (default for development/testing), fully compatible with PostgreSQL for production deployments.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+ & npm
+- OSQuery installed locally (`osqueryi` in system PATH or configured)
 - (Optional) Gemini API Key for AI features
 
 ### Backend Setup
@@ -60,6 +67,24 @@ SentinelX EDR is built on a modular, microservice-ready architecture:
    uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
    The API will be available at `http://localhost:8000` with Swagger documentation at `http://localhost:8000/docs`.
+
+### Agent Setup
+
+Ensure the backend is running before starting the agent.
+
+1. **Navigate to the agent directory:**
+   ```bash
+   cd agent
+   ```
+2. **Install dependencies (if required):**
+   ```bash
+   pip install requests
+   ```
+3. **Run the agent:**
+   ```bash
+   python main.py
+   ```
+   The agent will register with the backend and begin streaming live OSQuery telemetry.
 
 ### Frontend Setup
 
@@ -81,6 +106,10 @@ SentinelX EDR is built on a modular, microservice-ready architecture:
 
 ```
 SentinelX EDR/
+├── agent/            # Python OSQuery wrapper agent
+│   ├── collectors/   # Telemetry collection modules
+│   ├── osquery/      # OSQuery binary connector
+│   └── sender/       # API client for backend
 ├── backend/
 │   ├── app/
 │   │   ├── api/          # API Routers (Alerts, Telemetry, Cases, etc.)

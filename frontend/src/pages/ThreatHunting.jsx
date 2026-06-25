@@ -3,23 +3,8 @@ import ThreatGraph from '../components/common/ThreatGraph';
 import { Search, Database, Terminal, Filter } from 'lucide-react';
 
 const mockGraphData = {
-  nodes: [
-    { id: 'u1', type: 'user', label: 'jdoe' },
-    { id: 'p1', type: 'process', label: 'explorer.exe' },
-    { id: 'p2', type: 'process', label: 'WINWORD.EXE' },
-    { id: 'p3', type: 'process', label: 'cmd.exe', isSuspicious: true },
-    { id: 'p4', type: 'process', label: 'powershell.exe', isSuspicious: true },
-    { id: 'n1', type: 'network', label: '104.16.2.14:443', isSuspicious: true },
-    { id: 'f1', type: 'file', label: 'payload.exe', isSuspicious: true },
-  ],
-  links: [
-    { source: 'u1', target: 'p1', relationship: 'logged in' },
-    { source: 'p1', target: 'p2', relationship: 'spawned' },
-    { source: 'p2', target: 'p3', relationship: 'spawned' },
-    { source: 'p3', target: 'p4', relationship: 'spawned' },
-    { source: 'p4', target: 'n1', relationship: 'connected to' },
-    { source: 'p4', target: 'f1', relationship: 'dropped' },
-  ]
+  nodes: [],
+  links: []
 };
 
 const ThreatHunting = () => {

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Timeline from '../components/common/Timeline';
-import { Search, Bot, Download, FileText } from 'lucide-react';
+import { Search, Bot, Download, FileText, AlertCircle } from 'lucide-react';
+import { getInvestigations } from '../services/api';
 
 const mockInvestigationEvents = [
   {
@@ -54,12 +55,61 @@ const mockInvestigationEvents = [
 ];
 
 const Investigations = () => {
+  const [investigation, setInvestigation] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLatestInvestigation = async () => {
+      try {
+        const response = await getInvestigations();
+        if (response.data && response.data.length > 0) {
+          setInvestigation(response.data[0]); // Take the latest one
+        }
+      } catch (error) {
+        console.error('Error fetching investigations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchLatestInvestigation();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full py-20">
+        <div className="animate-pulse text-primary">Loading Investigations...</div>
+      </div>
+    );
+  }
+
+  if (!investigation) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-textMain">Investigations</h1>
+            <p className="text-textMuted mt-1">AI-driven analysis of security alerts.</p>
+          </div>
+        </div>
+        <div className="glass-panel p-10 flex flex-col items-center justify-center text-center">
+          <AlertCircle className="w-12 h-12 text-textMuted mb-4" />
+          <h2 className="text-xl font-semibold text-textMain">No Investigations Found</h2>
+          <p className="text-textMuted mt-2 max-w-md">There are currently no active AI investigations. Investigations are triggered automatically for high-severity alerts or manually from the alerts page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const events = investigation.timeline ? (typeof investigation.timeline === 'string' ? JSON.parse(investigation.timeline) : investigation.timeline) : mockInvestigationEvents;
+  const mitreMapping = investigation.mitre_mapping ? (typeof investigation.mitre_mapping === 'string' ? JSON.parse(investigation.mitre_mapping) : investigation.mitre_mapping) : {};
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-textMain">Investigation #INV-8492</h1>
-          <p className="text-textMuted mt-1">AI-driven analysis of ALT-1042 (Suspicious PowerShell Download).</p>
+          <h1 className="text-3xl font-bold tracking-tight text-textMain">Investigation #{investigation.id.substring(0,8).toUpperCase()}</h1>
+          <p className="text-textMuted mt-1">AI-driven analysis of Alert #{investigation.alert_id}</p>
         </div>
         <div className="flex space-x-3">
           <button className="btn-secondary">
@@ -88,52 +138,53 @@ const Investigations = () => {
             </div>
             
             <div className="prose prose-invert max-w-none text-sm text-textMuted">
-              <p>
-                Based on the telemetry from <span className="text-primary font-mono bg-primary/10 px-1 rounded">HOST-WS-01</span>, this alert represents a likely <strong>phishing payload execution</strong>.
-              </p>
-              <ul className="list-disc pl-5 mt-2 space-y-1">
-                <li>User <code>jdoe</code> opened a Word document which spawned a hidden PowerShell instance via <code>cmd.exe</code>.</li>
-                <li>The PowerShell script used Base64 encoding to bypass static analysis.</li>
-                <li>It connected to <code>104.16.2.14</code> (flagged by OTX as malicious) and downloaded a secondary payload.</li>
-                <li>The secondary payload (<code>payload.exe</code>) was dropped in the Temp directory.</li>
-              </ul>
-              <p className="mt-4 text-warning bg-warning/10 p-3 rounded-lg border border-warning/20">
-                <strong>Recommendation:</strong> Isolate the endpoint immediately to prevent lateral movement. Quarantine the dropped file and revoke the user's active sessions.
-              </p>
+              <p className="whitespace-pre-wrap">{investigation.summary || 'Summary is being generated...'}</p>
+              
+              {Object.keys(mitreMapping).length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-textMain font-medium mb-2">Mapped Techniques:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(mitreMapping).map(t => (
+                      <span key={t} className="bg-surfaceHighlight px-2 py-1 rounded text-xs border border-border">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Timeline */}
           <div className="glass-panel p-6">
             <h3 className="text-lg font-semibold text-textMain mb-6">Attack Timeline</h3>
-            <Timeline events={mockInvestigationEvents} />
+            <Timeline events={events} />
           </div>
         </div>
 
         {/* Sidebar Context */}
         <div className="space-y-6">
           <div className="glass-panel p-6">
-            <h3 className="text-sm font-semibold text-textMuted uppercase tracking-wider mb-4">Related Entities</h3>
+            <h3 className="text-sm font-semibold text-textMuted uppercase tracking-wider mb-4">Investigation Details</h3>
             <div className="space-y-3">
               <div className="p-3 bg-surfaceHighlight/50 rounded-lg border border-border">
-                <p className="text-xs text-textMuted mb-1">User</p>
+                <p className="text-xs text-textMuted mb-1">Status</p>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-textMain">jdoe (John Doe)</p>
-                  <span className="text-xs bg-danger/10 text-danger px-2 py-0.5 rounded">Compromised</span>
+                  <p className="text-sm font-medium text-textMain capitalize">{investigation.status}</p>
                 </div>
               </div>
               <div className="p-3 bg-surfaceHighlight/50 rounded-lg border border-border">
-                <p className="text-xs text-textMuted mb-1">Endpoint</p>
+                <p className="text-xs text-textMuted mb-1">Risk Score</p>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-textMain font-mono">HOST-WS-01</p>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Online</span>
+                  <p className={`text-sm font-medium ${investigation.risk_score > 70 ? 'text-danger' : investigation.risk_score > 40 ? 'text-warning' : 'text-primary'}`}>
+                    {investigation.risk_score}/100
+                  </p>
                 </div>
               </div>
               <div className="p-3 bg-surfaceHighlight/50 rounded-lg border border-border">
-                <p className="text-xs text-textMuted mb-1">External IP</p>
+                <p className="text-xs text-textMuted mb-1">Started At</p>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-danger font-mono">104.16.2.14</p>
-                  <span className="text-xs bg-surface text-textMuted border border-border px-2 py-0.5 rounded">OTX Match</span>
+                  <p className="text-sm font-medium text-textMain">{new Date(investigation.started_at).toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -148,7 +199,7 @@ const Investigations = () => {
               </button>
               <button className="w-full text-left p-3 rounded-lg border border-warning/20 bg-warning/10 text-warning hover:bg-warning/20 transition-colors">
                 <span className="font-semibold block text-sm">Kill Process Tree</span>
-                <span className="text-xs opacity-80">Terminate WINWORD.EXE and descendants.</span>
+                <span className="text-xs opacity-80">Terminate malicious processes.</span>
               </button>
               <button className="w-full text-left p-3 rounded-lg border border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
                 <span className="font-semibold block text-sm">Create Case</span>

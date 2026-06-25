@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.telemetry import TelemetryIngest
 from app.services.telemetry_service import ingest_telemetry, get_endpoint_telemetry_summary
+from app.services.detection.engine import engine as detection_engine
 
 router = APIRouter()
 
@@ -19,12 +20,16 @@ def ingest_data(data: TelemetryIngest, background_tasks: BackgroundTasks, db: Se
     In a high-throughput production system, this would push to Kafka/Redis.
     Here we write directly to DB synchronously for simplicity.
     """
-    counts = ingest_telemetry(db, data)
-    
-    # Trigger detection engine in background
-    # background_tasks.add_task(run_detection, data.model_dump())
-    
-    return {"status": "success", "inserted": counts}
+    try:
+        counts = ingest_telemetry(db, data)
+        # Trigger detection engine in background
+        background_tasks.add_task(detection_engine.process_telemetry, data.model_dump())
+        return {"status": "success", "inserted": counts}
+    except Exception as e:
+        import traceback
+        with open("error.log", "w") as f:
+            f.write(traceback.format_exc())
+        raise e
 
 @router.get("/{endpoint_id}/summary")
 def get_summary(endpoint_id: str, db: Session = Depends(get_db)) -> Any:

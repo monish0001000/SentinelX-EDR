@@ -1,26 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DataTable from '../components/common/DataTable';
 import { ShieldCheck, FileCode, Play, Plus, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { getDetectionRules } from '../services/api';
 
 const cn = (...inputs) => twMerge(clsx(inputs));
-
-const mockRules = [
-  { id: 'R-001', name: 'Suspicious PowerShell Download', type: 'Behavioral', severity: 'High', status: 'Enabled', author: 'System' },
-  { id: 'R-002', name: 'Mimikatz Credential Dumping', type: 'Sigma', severity: 'Critical', status: 'Enabled', author: 'System' },
-  { id: 'R-003', name: 'High Entropy DNS Query', type: 'Plugin', severity: 'High', status: 'Enabled', author: 'Custom' },
-  { id: 'R-004', name: 'Suspicious Parent-Child Process', type: 'Behavioral', severity: 'High', status: 'Disabled', author: 'System' },
-  { id: 'R-005', name: 'Ransomware File Extension', type: 'IOC', severity: 'Critical', status: 'Enabled', author: 'System' },
-];
 
 const columns = [
   { key: 'name', header: 'Rule Name', render: (val) => <span className="font-medium text-textMain">{val}</span> },
   { 
-    key: 'type', 
+    key: 'rule_type', 
     header: 'Type',
     render: (val) => (
-      <span className="inline-flex items-center px-2 py-0.5 rounded bg-surfaceHighlight text-xs font-medium text-textMuted border border-border">
+      <span className="inline-flex items-center px-2 py-0.5 rounded bg-surfaceHighlight text-xs font-medium text-textMuted border border-border capitalize">
         {val}
       </span>
     )
@@ -28,30 +21,32 @@ const columns = [
   { 
     key: 'severity', 
     header: 'Severity',
-    render: (val) => (
+    render: (val) => {
+      const severityStr = val || 'low';
+      return (
       <span className={cn(
-        "inline-flex items-center text-sm font-medium",
-        val === 'Critical' ? "text-danger" : val === 'High' ? "text-warning" : "text-primary"
+        "inline-flex items-center text-sm font-medium capitalize",
+        severityStr === 'critical' ? "text-danger" : severityStr === 'high' ? "text-warning" : "text-primary"
       )}>
-        {val}
+        {severityStr}
       </span>
-    )
+    )}
   },
   { 
-    key: 'status', 
+    key: 'is_enabled', 
     header: 'Status',
     render: (val) => (
       <div className="flex items-center">
         <div className={cn(
           "w-8 h-4 rounded-full relative transition-colors cursor-pointer",
-          val === 'Enabled' ? "bg-primary" : "bg-surfaceHighlight border border-border"
+          val ? "bg-primary" : "bg-surfaceHighlight border border-border"
         )}>
           <div className={cn(
             "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform",
-            val === 'Enabled' ? "translate-x-4" : "translate-x-0.5 bg-textMuted"
+            val ? "translate-x-4" : "translate-x-0.5 bg-textMuted"
           )}></div>
         </div>
-        <span className="ml-2 text-xs text-textMuted">{val}</span>
+        <span className="ml-2 text-xs text-textMuted">{val ? 'Enabled' : 'Disabled'}</span>
       </div>
     )
   },
@@ -74,6 +69,24 @@ const columns = [
 ];
 
 const DetectionRules = () => {
+  const [rules, setRules] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRules = async () => {
+      try {
+        const response = await getDetectionRules();
+        setRules(response.data);
+      } catch (error) {
+        console.error('Error fetching rules:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRules();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -95,11 +108,17 @@ const DetectionRules = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
-          <DataTable 
-            columns={columns} 
-            data={mockRules} 
-            searchPlaceholder="Search rules..."
-          />
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-pulse text-primary">Loading Rules...</div>
+            </div>
+          ) : (
+            <DataTable 
+              columns={columns} 
+              data={rules} 
+              searchPlaceholder="Search rules..."
+            />
+          )}
         </div>
         
         <div className="space-y-6">

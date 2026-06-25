@@ -16,17 +16,29 @@ router = APIRouter()
 @router.post("/", response_model=EndpointResponse)
 def register_endpoint(data: EndpointCreate, db: Session = Depends(get_db)) -> Any:
     """Register a new OSQuery endpoint."""
-    endpoint = Endpoint(
-        id=data.id,
-        hostname=data.hostname,
-        ip_address=data.ip_address,
-        os_type=data.os_type,
-        os_version=data.os_version,
-        agent_version=data.agent_version,
-        tags=data.tags,
-        status="online"
-    )
-    db.add(endpoint)
+    endpoint = db.query(Endpoint).filter(Endpoint.id == data.id).first()
+    if endpoint:
+        endpoint.hostname = data.hostname
+        endpoint.ip_address = data.ip_address
+        endpoint.os_type = data.os_type
+        endpoint.os_version = data.os_version
+        endpoint.agent_version = data.agent_version
+        endpoint.tags = data.tags
+        endpoint.status = "online"
+        endpoint.last_seen = datetime.now(timezone.utc)
+    else:
+        endpoint = Endpoint(
+            id=data.id,
+            hostname=data.hostname,
+            ip_address=data.ip_address,
+            os_type=data.os_type,
+            os_version=data.os_version,
+            agent_version=data.agent_version,
+            tags=data.tags,
+            status="online"
+        )
+        db.add(endpoint)
+    
     db.commit()
     db.refresh(endpoint)
     return endpoint

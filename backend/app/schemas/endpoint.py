@@ -15,7 +15,7 @@ class EndpointBase(BaseModel):
     tags: Optional[str] = None
 
 class EndpointCreate(EndpointBase):
-    pass
+    id: str
 
 class EndpointUpdate(BaseModel):
     status: Optional[str] = None

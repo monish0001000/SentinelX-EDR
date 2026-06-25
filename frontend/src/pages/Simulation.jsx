@@ -1,11 +1,7 @@
 import React from 'react';
 import { Target, PlayCircle, Shield, AlertTriangle } from 'lucide-react';
 
-const mockScenarios = [
-  { id: 'sim-1', name: 'Ransomware Behavior (Test)', description: 'Simulates file encryption and extension modification in a safe sandbox.', duration: '2m', difficulty: 'Medium' },
-  { id: 'sim-2', name: 'APT29 Stealth Lateral Movement', description: 'Simulates WMI execution and pass-the-hash techniques.', duration: '5m', difficulty: 'Hard' },
-  { id: 'sim-3', name: 'Suspicious PowerShell Download', description: 'Executes a benign encoded PowerShell command that downloads a test file.', duration: '1m', difficulty: 'Easy' },
-];
+const mockScenarios = [];
 
 const Simulation = () => {
   return (

@@ -1,18 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DataTable from '../components/common/DataTable';
 import { ShieldAlert, AlertTriangle, Info, MoreVertical } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { getAlerts } from '../services/api';
 
 const cn = (...inputs) => twMerge(clsx(inputs));
-
-const mockAlerts = [
-  { id: 'ALT-1042', title: 'Suspicious PowerShell Download', severity: 'critical', endpoint: 'HOST-WS-01', ruleType: 'behavioral', mitre: 'T1059.001', time: '2m ago', status: 'new' },
-  { id: 'ALT-1041', title: 'Mimikatz Execution Detected', severity: 'critical', endpoint: 'SRV-DB-01', ruleType: 'sigma', mitre: 'T1003.001', time: '15m ago', status: 'investigating' },
-  { id: 'ALT-1040', title: 'High Entropy DNS Query', severity: 'high', endpoint: 'LAPTOP-MKT-04', ruleType: 'plugin', mitre: 'T1071.004', time: '1h ago', status: 'new' },
-  { id: 'ALT-1039', title: 'Multiple Failed Logins', severity: 'medium', endpoint: 'SRV-WEB-02', ruleType: 'behavioral', mitre: 'T1110.001', time: '3h ago', status: 'resolved' },
-  { id: 'ALT-1038', title: 'Unusual Process Spawn (Word -> cmd)', severity: 'high', endpoint: 'DESKTOP-HR-02', ruleType: 'behavioral', mitre: 'T1204.002', time: '5h ago', status: 'new' },
-];
 
 const columns = [
   { key: 'id', header: 'Alert ID' },
@@ -49,13 +42,13 @@ const columns = [
     header: 'Detection Title',
     render: (val) => <span className="font-medium text-textMain">{val}</span>
   },
-  { key: 'endpoint', header: 'Endpoint' },
+  { key: 'endpoint_id', header: 'Endpoint' },
   { 
     key: 'mitre', 
     header: 'MITRE ATT&CK',
-    render: (val) => (
+    render: (val, row) => (
       <span className="inline-flex items-center px-2 py-0.5 rounded bg-surfaceHighlight text-xs font-mono text-textMuted border border-border">
-        {val}
+        {row.mitre_technique || val || row.rule_type}
       </span>
     )
   },
@@ -65,7 +58,7 @@ const columns = [
     render: (val) => (
       <span className={cn(
         "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize",
-        val === 'new' ? "text-primary bg-primary/10" :
+        val === 'open' || val === 'new' ? "text-primary bg-primary/10" :
         val === 'investigating' ? "text-warning bg-warning/10" :
         "text-accent bg-accent/10"
       )}>
@@ -73,7 +66,11 @@ const columns = [
       </span>
     )
   },
-  { key: 'time', header: 'Time' },
+  { 
+    key: 'detected_at', 
+    header: 'Time',
+    render: (val) => <span className="text-sm">{new Date(val).toLocaleString()}</span>
+  },
   {
     key: 'actions',
     header: '',
@@ -87,6 +84,26 @@ const columns = [
 ];
 
 const Alerts = () => {
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const response = await getAlerts();
+        setAlerts(response.data);
+      } catch (error) {
+        console.error('Error fetching alerts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 10000); // 10s refresh
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -96,12 +113,18 @@ const Alerts = () => {
         </div>
       </div>
 
-      <DataTable 
-        columns={columns} 
-        data={mockAlerts} 
-        searchPlaceholder="Search alerts by title, endpoint, or MITRE ID..."
-        onRowClick={(row) => console.log('Clicked', row)}
-      />
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-pulse text-primary">Loading Alerts...</div>
+        </div>
+      ) : (
+        <DataTable 
+          columns={columns} 
+          data={alerts} 
+          searchPlaceholder="Search alerts by title, endpoint, or MITRE ID..."
+          onRowClick={(row) => console.log('Clicked', row)}
+        />
+      )}
     </div>
   );
 };

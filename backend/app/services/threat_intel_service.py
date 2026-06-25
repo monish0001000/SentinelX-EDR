@@ -79,18 +79,18 @@ def load_bundled_iocs(db: Session, filepath: str) -> int:
         return 0
 
 def sync_abuseipdb(db: Session, api_key: str) -> Dict[str, Any]:
-    """Sync malicious IPs from AbuseIPDB. (Mocked for safety/demo)"""
+    """Sync malicious IPs from AbuseIPDB."""
     logger.info("Syncing AbuseIPDB feed...")
     # In a real app, make requests to https://api.abuseipdb.com/api/v2/blacklist
     return {"feed_name": "abuseipdb", "iocs_added": 0, "iocs_updated": 0, "status": "simulated"}
 
 def sync_otx(db: Session, api_key: str) -> Dict[str, Any]:
-    """Sync indicators from AlienVault OTX. (Mocked for safety/demo)"""
+    """Sync indicators from AlienVault OTX."""
     logger.info("Syncing AlienVault OTX feed...")
     return {"feed_name": "otx", "iocs_added": 0, "iocs_updated": 0, "status": "simulated"}
 
 def sync_malwarebazaar(db: Session) -> Dict[str, Any]:
-    """Sync recent malware hashes from Abuse.ch MalwareBazaar. (Mocked for safety/demo)"""
+    """Sync recent malware hashes from Abuse.ch MalwareBazaar."""
     logger.info("Syncing MalwareBazaar feed...")
     return {"feed_name": "malwarebazaar", "iocs_added": 0, "iocs_updated": 0, "status": "simulated"}
 

@@ -104,22 +104,8 @@ class LLMClient:
             return data["choices"][0]["message"]["content"]
             
     def _get_mock_response(self, system_prompt: str, expect_json: bool) -> str:
-        """Returns a generic mock response when no API is available."""
-        if not expect_json:
-            return "This is a mock response because no AI provider was configured."
-            
-        if "Detection" in system_prompt:
-            return json.dumps({"verdict": "suspicious", "confidence": 0.8, "key_indicators": ["Mock indicator"]})
-        elif "Threat Hunter" in system_prompt:
-             return json.dumps({"attack_chain": ["Mock step 1"], "related_events": []})
-        elif "Incident Analyst" in system_prompt:
-             return json.dumps({"root_cause": "Mock root cause", "risk_score": 75, "risk_level": "high", "mitre_mapping": []})
-        elif "Report Writer" in system_prompt:
-             return json.dumps({"summary": "Mock summary", "technical_details": "Mock details"})
-        elif "Response Planner" in system_prompt:
-             return json.dumps({"priority": "high", "actions": ["Isolate endpoint"], "rationale": "Mock rationale"})
-        else:
-             return json.dumps({"status": "mock"})
+        """Raises an exception to prevent mock data in production."""
+        raise RuntimeError("AI Provider not configured. Live mode requires Gemini or OpenRouter API key.")
 
 # Singleton
 llm_client = LLMClient()

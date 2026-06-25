@@ -11,11 +11,11 @@ class BehavioralDetector:
     def evaluate_event(self, event: Dict[str, Any], category: str) -> List[Dict[str, Any]]:
         matches = []
         
-        if category == 'process_creation':
+        if category == 'processes' or category == 'process_creation':
             matches.extend(self._check_process(event))
-        elif category == 'network_connection':
+        elif category == 'network_connections' or category == 'network_connection':
             matches.extend(self._check_network(event))
-        elif category == 'startup_item':
+        elif category == 'startup_items' or category == 'startup_item':
             matches.extend(self._check_persistence(event))
             
         return matches
@@ -65,6 +65,10 @@ class BehavioralDetector:
         # 8. Lateral Movement
         if name == "wmic.exe" and "process call create" in cmdline and "/node:" in cmdline:
              matches.append(self._alert("WMI Lateral Movement", "high", "T1047"))
+             
+        # 9. Test Rule: Suspicious Calculator Launch
+        if name == "calc.exe" or name == "calculatorapp.exe":
+             matches.append(self._alert("Suspicious Calculator Launch (E2E Test)", "critical", "T1059"))
              
         return matches
         
