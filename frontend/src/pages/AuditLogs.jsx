@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAuditLogs } from '../services/api';
 import { format } from 'date-fns';
-import { ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -120,14 +120,14 @@ export default function AuditLogs() {
             onClick={() => exportCSV('page')}
             className="inline-flex items-center px-3 py-1.5 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none transition-colors"
           >
-            <ArrowDownTrayIcon className="-ml-1 mr-2 h-4 w-4" />
+            <Download className="-ml-1 mr-2 h-4 w-4" />
             Export Page
           </button>
           <button
             onClick={() => exportCSV('all')}
             className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none transition-colors"
           >
-            <ArrowDownTrayIcon className="-ml-1 mr-2 h-4 w-4" />
+            <Download className="-ml-1 mr-2 h-4 w-4" />
             Export All (Filtered)
           </button>
         </div>
@@ -288,7 +288,7 @@ export default function AuditLogs() {
                   className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-600 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="sr-only">Previous</span>
-                  <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                 </button>
                 <span className="relative inline-flex items-center px-4 py-2 border border-gray-600 bg-gray-800 text-sm font-medium text-white">
                   Page {page}
@@ -299,7 +299,7 @@ export default function AuditLogs() {
                   className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-600 bg-gray-800 text-sm font-medium text-gray-400 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="sr-only">Next</span>
-                  <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
                 </button>
               </nav>
             </div>

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getHealth } from '../services/api';
 import { 
-  ServerIcon, 
-  DatabaseIcon, 
-  CpuChipIcon, 
-  GlobeAltIcon, 
-  ClockIcon, 
-  SparklesIcon, 
-  BoltIcon, 
-  SignalIcon 
-} from '@heroicons/react/24/outline';
+  Server, 
+  Database, 
+  Cpu, 
+  Globe, 
+  Clock, 
+  Sparkles, 
+  Zap, 
+  Radio 
+} from 'lucide-react';
 
 export default function HealthDashboard() {
   const [health, setHealth] = useState(null);
@@ -84,7 +84,7 @@ export default function HealthDashboard() {
         {/* API Server */}
         <div className="bg-gray-800 rounded-lg p-5 shadow border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex items-center space-x-3 mb-4 border-b border-gray-700 pb-3">
-            <ServerIcon className="h-6 w-6 text-blue-500" />
+            <Server className="h-6 w-6 text-blue-500" />
             <h3 className="text-lg font-medium text-white flex-1">API Server</h3>
             <StatusBadge status={health?.status} />
           </div>
@@ -98,7 +98,7 @@ export default function HealthDashboard() {
         {/* Database */}
         <div className="bg-gray-800 rounded-lg p-5 shadow border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex items-center space-x-3 mb-4 border-b border-gray-700 pb-3">
-            <DatabaseIcon className="h-6 w-6 text-green-500" />
+            <Database className="h-6 w-6 text-green-500" />
             <h3 className="text-lg font-medium text-white flex-1">Database</h3>
             <StatusBadge status={components.database?.status || 'ok'} />
           </div>
@@ -115,7 +115,7 @@ export default function HealthDashboard() {
         {/* Scheduler */}
         <div className="bg-gray-800 rounded-lg p-5 shadow border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex items-center space-x-3 mb-4 border-b border-gray-700 pb-3">
-            <ClockIcon className="h-6 w-6 text-purple-500" />
+            <Clock className="h-6 w-6 text-purple-500" />
             <h3 className="text-lg font-medium text-white flex-1">Scheduler</h3>
             <StatusBadge status={components.scheduler?.status || 'ok'} />
           </div>
@@ -129,7 +129,7 @@ export default function HealthDashboard() {
         {/* AI Engine */}
         <div className="bg-gray-800 rounded-lg p-5 shadow border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex items-center space-x-3 mb-4 border-b border-gray-700 pb-3">
-            <SparklesIcon className="h-6 w-6 text-pink-500" />
+            <Sparkles className="h-6 w-6 text-pink-500" />
             <h3 className="text-lg font-medium text-white flex-1">AI Engine</h3>
             <StatusBadge status={components.ai?.status || 'ok'} />
           </div>
@@ -143,7 +143,7 @@ export default function HealthDashboard() {
         {/* Threat Intel */}
         <div className="bg-gray-800 rounded-lg p-5 shadow border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex items-center space-x-3 mb-4 border-b border-gray-700 pb-3">
-            <GlobeAltIcon className="h-6 w-6 text-cyan-500" />
+            <Globe className="h-6 w-6 text-cyan-500" />
             <h3 className="text-lg font-medium text-white flex-1">Threat Intel</h3>
             <StatusBadge status={components.threat_intel?.status || 'ok'} />
           </div>
@@ -157,7 +157,7 @@ export default function HealthDashboard() {
         {/* WebSocket */}
         <div className="bg-gray-800 rounded-lg p-5 shadow border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex items-center space-x-3 mb-4 border-b border-gray-700 pb-3">
-            <BoltIcon className="h-6 w-6 text-yellow-500" />
+            <Zap className="h-6 w-6 text-yellow-500" />
             <h3 className="text-lg font-medium text-white flex-1">WebSocket</h3>
             <StatusBadge status={components.websocket?.status || 'ok'} />
           </div>
@@ -171,7 +171,7 @@ export default function HealthDashboard() {
         {/* OSQuery Agent Manager */}
         <div className="bg-gray-800 rounded-lg p-5 shadow border border-gray-700 hover:border-gray-600 transition-colors">
           <div className="flex items-center space-x-3 mb-4 border-b border-gray-700 pb-3">
-            <SignalIcon className="h-6 w-6 text-orange-500" />
+            <Radio className="h-6 w-6 text-orange-500" />
             <h3 className="text-lg font-medium text-white flex-1">Agent Manager</h3>
             <StatusBadge status={components.osquery?.status || 'ok'} />
           </div>
@@ -187,7 +187,7 @@ export default function HealthDashboard() {
       {/* System Resources */}
       <div className="bg-gray-800 rounded-lg p-6 shadow border border-gray-700 mt-6">
         <div className="flex items-center space-x-3 mb-6">
-          <CpuChipIcon className="h-6 w-6 text-white" />
+          <Cpu className="h-6 w-6 text-white" />
           <h3 className="text-lg font-medium text-white">Host Resources</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-300">

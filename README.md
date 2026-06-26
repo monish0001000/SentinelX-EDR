@@ -273,11 +273,7 @@ THREAT_INTEL_API_KEY=your-ti-key
 
 ## 📸 Demo & Screenshots
 
-<div align="center">
-  <video src="https://github.com/monish0001000/SentinelX-EDR/raw/main/docs/demo.mp4" controls="controls" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-  </video>
-  <p><i>SentinelX EDR Live Demonstration</i></p>
-</div>
+https://github.com/monish0001000/SentinelX-EDR/raw/main/docs/demo.mp4
 
 ---
 

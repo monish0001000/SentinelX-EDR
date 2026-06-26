@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ShieldCheckIcon } from '@heroicons/react/24/solid';
+import { ShieldCheck } from 'lucide-react';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -35,7 +35,7 @@ export default function Login() {
       <div className="max-w-md w-full space-y-8 bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
         <div>
           <div className="mx-auto h-12 w-12 text-blue-500 flex justify-center">
-            <ShieldCheckIcon className="h-12 w-12" />
+            <ShieldCheck className="h-12 w-12" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             SentinelX EDR

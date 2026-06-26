@@ -16,7 +16,7 @@ def create_admin():
     else:
         new_admin = User(
             username='admin',
-            email='admin@sentinelx.local',
+            email='admin@sentinelx.com',
             hashed_password=get_password_hash('admin123'),
             role='Administrator',
             is_active=True
