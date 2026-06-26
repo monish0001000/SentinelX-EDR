@@ -68,15 +68,7 @@ def simulate_response(db: Session, action_type: str, target: str, endpoint_id: s
     db.commit()
     db.refresh(log_entry)
         
-    return {
-        "id": log_entry.id,
-        "action": action_type,
-        "target": target,
-        "endpoint_id": endpoint_id,
-        "status": status,
-        "expected_outcome": outcome,
-        "timestamp": log_entry.timestamp.isoformat()
-    }
+    return log_entry
 
 def get_response_log(db: Session, endpoint_id: Optional[str] = None) -> List[ResponseLog]:
     query = db.query(ResponseLog)

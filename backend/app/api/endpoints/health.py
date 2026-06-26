@@ -24,7 +24,8 @@ def check_health(db: Session = Depends(deps.get_db)):
     
     # Check DB
     try:
-        db.execute("SELECT 1")
+        from sqlalchemy import text
+        db.execute(text("SELECT 1"))
     except Exception as e:
         health_status["database"] = f"offline: {str(e)}"
         health_status["status"] = "degraded"

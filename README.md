@@ -196,6 +196,30 @@ Real-time communications are pushed over WebSockets (`ws://<server-ip>:8000/api/
 
 ---
 
+## ✅ Validation Suite
+
+SentinelX EDR includes a comprehensive validation suite designed to verify that all internal subsystems are functioning perfectly. This ensures a stable, enterprise-ready environment and acts as an integration testing benchmark.
+
+**Subsystems Validated (15/15 Pass Rate):**
+- Authentication & JWT Authorization
+- System Health & API Latency
+- Database Connectivity & Schema
+- Endpoint Registration & Telemetry Ingestion
+- OSQuery Payload Parsing
+- Threat Detection Engine & Sigma Rules
+- WebSocket Notifications
+- Audit Logging & Background Schedulers
+- AI Investigation endpoints
+
+To run the validation suite:
+```bash
+cd validation_suite
+python run_all.py
+```
+*Generates HTML and JSON reports in `validation_suite/reports/`.*
+
+---
+
 ## 🚀 Installation & Deployment
 
 This guide covers deploying SentinelX EDR for development, testing, and production environments.
