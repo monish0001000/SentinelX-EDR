@@ -70,7 +70,7 @@ const Cases = () => {
     const fetchCases = async () => {
       try {
         const response = await getCases();
-        setCases(response.data);
+        setCases(response.data || []);
       } catch (error) {
         console.error('Error fetching cases:', error);
       } finally {
@@ -110,7 +110,11 @@ const Cases = () => {
         </div>
         <div className="glass-panel p-5">
           <h3 className="text-sm font-medium text-textMuted uppercase tracking-wider mb-2">Avg Resolution</h3>
-          <p className="text-4xl font-bold text-textMain">1.4 <span className="text-xl text-textMuted font-normal">days</span></p>
+          {cases.length > 0 ? (
+            <p className="text-4xl font-bold text-textMain">1.4 <span className="text-xl text-textMuted font-normal">days</span></p>
+          ) : (
+            <p className="text-xl font-bold text-textMuted mt-2">No historical data available</p>
+          )}
         </div>
       </div>
 
@@ -119,6 +123,12 @@ const Cases = () => {
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="animate-pulse text-primary">Loading Cases...</div>
+            </div>
+          ) : cases.length === 0 ? (
+            <div className="glass-panel p-10 flex flex-col items-center justify-center text-center">
+              <Briefcase className="w-12 h-12 text-textMuted mb-4" />
+              <h2 className="text-xl font-semibold text-textMain">No Cases Available</h2>
+              <p className="text-textMuted mt-2 max-w-md">There are no cases in the system yet. Cases are created from alerts or investigations.</p>
             </div>
           ) : (
             <DataTable 

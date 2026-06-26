@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ShieldAlert, 
   Activity, 
@@ -10,27 +10,44 @@ import {
   Settings,
   Menu,
   X,
-  Radar
+  Radar,
+  List,
+  ActivityIcon,
+  LogOut
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useAuth } from '../../contexts/AuthContext';
+import { PERMISSIONS, hasPermission } from '../../utils/permissions';
 
 const cn = (...inputs) => twMerge(clsx(inputs));
 
 const navItems = [
-  { path: '/', label: 'Overview', icon: Activity },
-  { path: '/alerts', label: 'Alerts', icon: ShieldAlert },
-  { path: '/endpoints', label: 'Endpoints', icon: Server },
-  { path: '/investigations', label: 'Investigations', icon: Search },
-  { path: '/cases', label: 'Cases', icon: FileText },
-  { path: '/hunting', label: 'Threat Hunting', icon: Crosshair },
-  { path: '/simulation', label: 'Simulation', icon: Radar },
-  { path: '/settings', label: 'Settings', icon: Settings },
+  { path: '/', label: 'Overview', icon: Activity, permission: PERMISSIONS.VIEW_DASHBOARD },
+  { path: '/alerts', label: 'Alerts', icon: ShieldAlert, permission: PERMISSIONS.VIEW_ALERTS },
+  { path: '/endpoints', label: 'Endpoints', icon: Server, permission: PERMISSIONS.VIEW_ENDPOINTS },
+  { path: '/investigations', label: 'Investigations', icon: Search, permission: PERMISSIONS.VIEW_INVESTIGATIONS },
+  { path: '/cases', label: 'Cases', icon: FileText, permission: PERMISSIONS.VIEW_CASES },
+  { path: '/hunting', label: 'Threat Hunting', icon: Crosshair, permission: PERMISSIONS.VIEW_HUNTING },
+  { path: '/rules', label: 'Detection Rules', icon: ShieldAlert, permission: PERMISSIONS.VIEW_RULES },
+  { path: '/simulation', label: 'Validation Lab', icon: Radar, permission: PERMISSIONS.VIEW_SIMULATIONS },
+  { path: '/settings', label: 'Settings', icon: Settings, permission: PERMISSIONS.VIEW_SETTINGS },
+  { path: '/audit', label: 'Audit Logs', icon: List, permission: PERMISSIONS.VIEW_AUDIT },
+  { path: '/health', label: 'Health Dashboard', icon: ActivityIcon, permission: PERMISSIONS.VIEW_HEALTH },
 ];
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = React.useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const filteredNavItems = navItems.filter(item => user && hasPermission(user.role, item.permission));
 
   return (
     <aside className={cn(
@@ -53,7 +70,7 @@ const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-2">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path || 
                           (item.path !== '/' && location.pathname.startsWith(item.path));
           
@@ -90,17 +107,23 @@ const Sidebar = () => {
       
       {/* Bottom Profile/Status */}
       <div className="p-4 border-t border-border bg-surfaceHighlight/20">
-        <div className={cn("flex items-center", !isOpen && "justify-center")}>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
-            <span className="font-bold text-white">SA</span>
+        <div className={cn("flex items-center justify-between", !isOpen && "justify-center")}>
+          <div className="flex items-center overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+              <span className="font-bold text-white">{user?.username?.charAt(0).toUpperCase()}</span>
+            </div>
+            <div className={cn("ml-3 overflow-hidden transition-all duration-300", isOpen ? "w-auto opacity-100" : "w-0 opacity-0")}>
+              <p className="text-sm font-medium text-textMain whitespace-nowrap">{user?.username}</p>
+              <p className="text-xs text-accent flex items-center whitespace-nowrap">
+                {user?.role}
+              </p>
+            </div>
           </div>
-          <div className={cn("ml-3 overflow-hidden transition-all duration-300", isOpen ? "w-auto opacity-100" : "w-0 opacity-0")}>
-            <p className="text-sm font-medium text-textMain whitespace-nowrap">SOC Analyst</p>
-            <p className="text-xs text-accent flex items-center whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-accent mr-1 animate-pulse"></span>
-              System Online
-            </p>
-          </div>
+          {isOpen && (
+            <button onClick={handleLogout} className="p-2 text-textMuted hover:text-red-400 transition-colors">
+              <LogOut className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
     </aside>

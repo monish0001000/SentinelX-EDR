@@ -13,6 +13,8 @@ from app.models.case import Case, CaseNote, CaseEvidence
 from app.models.report import Report
 from app.models.threat_intel import ThreatIntel
 from app.models.detection_rule import DetectionRule
+from app.models.user import User
+from app.models.audit import AuditLog
 from app.models.metric import DetectionMetric
 from app.models.simulation import SimulationRun
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   ShieldAlert, 
   Server, 
   Activity, 
@@ -10,6 +10,7 @@ import {
   Database
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
+import ActivityFeed from '../components/dashboard/ActivityFeed';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 import { getMetrics, getMttd, getAlerts } from '../services/api';
 
@@ -222,50 +223,13 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* System Health */}
-        <div className="glass-panel p-6">
+        {/* Live Activity Feed */}
+        <div className="glass-panel p-6 flex flex-col">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-textMain">System Health</h3>
+            <h3 className="text-lg font-semibold text-textMain">Live Activity Feed</h3>
           </div>
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-lg bg-surfaceHighlight flex items-center justify-center mr-4">
-                  <Server className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-textMain">Agents Online</p>
-                  <p className="text-xs text-textMuted">98.5% coverage</p>
-                </div>
-              </div>
-              <span className="text-lg font-semibold text-accent">8,492 / 8,500</span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-lg bg-surfaceHighlight flex items-center justify-center mr-4">
-                  <Cpu className="w-5 h-5 text-secondary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-textMain">Engine Load</p>
-                  <p className="text-xs text-textMuted">Events per second</p>
-                </div>
-              </div>
-              <span className="text-lg font-semibold text-textMain">4,250 EPS</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-lg bg-surfaceHighlight flex items-center justify-center mr-4">
-                  <Globe className="w-5 h-5 text-warning" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-textMain">Threat Intel Feeds</p>
-                  <p className="text-xs text-textMuted">Last sync 5m ago</p>
-                </div>
-              </div>
-              <span className="text-sm font-medium text-accent">3/3 Synced</span>
-            </div>
+          <div className="flex-1 overflow-hidden">
+            <ActivityFeed />
           </div>
         </div>
       </div>

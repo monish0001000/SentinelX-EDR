@@ -24,3 +24,4 @@ class ThreatGraph(BaseModel):
     edges: List[GraphEdge]
     alert_id: Optional[int] = None
     endpoint_id: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None

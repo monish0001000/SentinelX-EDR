@@ -21,6 +21,16 @@ from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
 # ── Security Schemes ────────────────────────────────────────────
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -99,6 +109,19 @@ def create_access_token(
     }
     return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
+
+def create_refresh_token(subject: str) -> str:
+    settings = get_settings()
+    expires_delta = timedelta(days=settings.JWT_REFRESH_EXPIRATION_DAYS)
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode = {
+        "sub": subject,
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+        "iss": "sentinelx-edr",
+        "type": "refresh"
+    }
+    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 def verify_ws_token(token: str) -> Optional[str]:
     """

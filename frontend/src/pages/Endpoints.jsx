@@ -4,6 +4,8 @@ import { Monitor, Wifi, WifiOff, ShieldAlert, MoreVertical } from 'lucide-react'
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getEndpoints } from '../services/api';
+import HasPermission from '../components/common/HasPermission';
+import { PERMISSIONS } from '../utils/permissions';
 
 const cn = (...inputs) => twMerge(clsx(inputs));
 
@@ -116,7 +118,9 @@ const Endpoints = () => {
         </div>
         <div className="flex space-x-3">
           <button className="btn-secondary">Export CSV</button>
-          <button className="btn-primary">Deploy Agent</button>
+          <HasPermission requiredPermission={PERMISSIONS.ISOLATE_ENDPOINT}>
+            <button className="btn-primary">Deploy Agent</button>
+          </HasPermission>
         </div>
       </div>
 

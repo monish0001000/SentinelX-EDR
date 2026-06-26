@@ -1,18 +1,20 @@
 """
 SentinelX EDR - Response Simulator Service
 ===========================================
-Simulates incident response actions without affecting real endpoints.
+Simulates incident response actions without affecting real endpoints, logs to DB.
 """
 
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
 from app.models.endpoint import Endpoint
+from app.models.response_log import ResponseLog
 
-def simulate_response(db: Session, action_type: str, target: str, endpoint_id: str) -> Dict[str, Any]:
+def simulate_response(db: Session, action_type: str, target: str, endpoint_id: str, user: str = "system", execution_mode: str = "simulation", reason: str = "") -> Dict[str, Any]:
     """
-    Simulate an incident response action.
+    Simulate an incident response action and log it.
     
     Valid action_types:
     - isolate_endpoint
@@ -24,7 +26,7 @@ def simulate_response(db: Session, action_type: str, target: str, endpoint_id: s
     
     endpoint = db.query(Endpoint).filter(Endpoint.id == endpoint_id).first()
     
-    status = "simulated"
+    status = "simulated" if execution_mode == "simulation" else "success"
     outcome = ""
     
     if action_type == "isolate_endpoint":
@@ -52,25 +54,32 @@ def simulate_response(db: Session, action_type: str, target: str, endpoint_id: s
         status = "failed"
         outcome = f"Unknown action type: {action_type}"
         
+    # Log the action
+    log_entry = ResponseLog(
+        endpoint_id=endpoint_id,
+        user=user,
+        action_requested=action_type,
+        execution_mode=execution_mode,
+        status=status,
+        reason=reason or outcome,
+        timestamp=datetime.now(timezone.utc)
+    )
+    db.add(log_entry)
+    db.commit()
+    db.refresh(log_entry)
+        
     return {
+        "id": log_entry.id,
         "action": action_type,
         "target": target,
         "endpoint_id": endpoint_id,
         "status": status,
         "expected_outcome": outcome,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": log_entry.timestamp.isoformat()
     }
 
-def get_response_log(db: Session, endpoint_id: Optional[str] = None) -> List[Dict[str, Any]]:
-    # In a real system, we'd query an AuditLog table here.
-    # For simulation, we return a static placeholder.
-    return [
-        {
-            "action": "isolate_endpoint",
-            "target": "all",
-            "endpoint_id": endpoint_id or "demo-1",
-            "status": "simulated",
-            "expected_outcome": "Endpoint isolated from network",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-    ]
+def get_response_log(db: Session, endpoint_id: Optional[str] = None) -> List[ResponseLog]:
+    query = db.query(ResponseLog)
+    if endpoint_id:
+        query = query.filter(ResponseLog.endpoint_id == endpoint_id)
+    return query.order_by(desc(ResponseLog.timestamp)).all()

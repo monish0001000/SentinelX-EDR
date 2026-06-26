@@ -4,6 +4,8 @@ import { ShieldCheck, FileCode, Play, Plus, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getDetectionRules } from '../services/api';
+import HasPermission from '../components/common/HasPermission';
+import { PERMISSIONS } from '../utils/permissions';
 
 const cn = (...inputs) => twMerge(clsx(inputs));
 
@@ -57,12 +59,16 @@ const columns = [
     sortable: false,
     render: () => (
       <div className="flex space-x-2">
-        <button className="p-1.5 hover:bg-surfaceHighlight rounded text-textMuted hover:text-primary transition-colors" title="Edit">
-          <FileCode className="w-4 h-4" />
-        </button>
-        <button className="p-1.5 hover:bg-surfaceHighlight rounded text-textMuted hover:text-accent transition-colors" title="Test Rule">
-          <Play className="w-4 h-4" />
-        </button>
+        <HasPermission requiredPermission={PERMISSIONS.EDIT_RULE}>
+          <button className="p-1.5 hover:bg-surfaceHighlight rounded text-textMuted hover:text-primary transition-colors" title="Edit">
+            <FileCode className="w-4 h-4" />
+          </button>
+        </HasPermission>
+        <HasPermission requiredPermission={PERMISSIONS.CREATE_RULE}>
+          <button className="p-1.5 hover:bg-surfaceHighlight rounded text-textMuted hover:text-accent transition-colors" title="Test Rule">
+            <Play className="w-4 h-4" />
+          </button>
+        </HasPermission>
       </div>
     )
   }
@@ -99,10 +105,12 @@ const DetectionRules = () => {
             <Search className="w-4 h-4 mr-2" />
             Rule Marketplace
           </button>
-          <button className="btn-primary flex items-center">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Rule
-          </button>
+          <HasPermission requiredPermission={PERMISSIONS.CREATE_RULE}>
+            <button className="btn-primary flex items-center">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Rule
+            </button>
+          </HasPermission>
         </div>
       </div>
 
@@ -173,7 +181,9 @@ const DetectionRules = () => {
             <p className="text-xs text-textMuted mb-4">
               Based on recent alerts, we recommend enabling the "Suspicious Parent-Child Process" rule to improve coverage against Living-off-the-Land (LotL) techniques.
             </p>
-            <button className="w-full btn-primary text-xs py-1.5">Enable Rule</button>
+            <HasPermission requiredPermission={PERMISSIONS.EDIT_RULE}>
+              <button className="w-full btn-primary text-xs py-1.5">Enable Rule</button>
+            </HasPermission>
           </div>
         </div>
       </div>

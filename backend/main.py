@@ -25,6 +25,8 @@ logger = logging.getLogger("SentinelX")
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+from app.services.scheduler import scheduler_instance
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -60,9 +62,13 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
         
+    # Start background scheduler
+    scheduler_instance.start()
+        
     yield
     
     # Shutdown
+    scheduler_instance.shutdown()
     logger.info("Shutting down SentinelX EDR Backend...")
 
 settings = get_settings()

@@ -67,7 +67,10 @@ class Settings(BaseSettings):
     API_KEY: Optional[str] = None  # If set, endpoints require this key
     JWT_SECRET: str = "sentinelx-change-me-in-production"
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRATION_MINUTES: int = 480  # 8 hours
+    JWT_EXPIRATION_MINUTES: int = 15  # 15 minutes for access token
+    JWT_REFRESH_EXPIRATION_DAYS: int = 7 # 7 days for refresh token
+    SECRET_KEY: str = "sentinelx-secret-change-me-in-production" # Used in auth.py
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
 
     # ── Agent ───────────────────────────────────────────────────
     AGENT_HEARTBEAT_TIMEOUT_SECONDS: int = 300  # 5 min = offline
