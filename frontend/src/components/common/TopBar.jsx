@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Search, User, X, ShieldAlert, Activity, Server, Info } from 'lucide-react';
+import { Bell, Search, User, ShieldAlert, Activity, Server, Info, Command } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 const TopBar = () => {
   const [notifications, setNotifications] = useState([]);
@@ -45,6 +47,7 @@ const TopBar = () => {
             time: new Date().toLocaleTimeString(),
             isRead: false
           };
+          toast.error(newNotification.title, { id: newNotification.id });
         } else if (data.type === 'agent_status') {
           newNotification = {
             id: Date.now(),
@@ -55,6 +58,8 @@ const TopBar = () => {
             time: new Date().toLocaleTimeString(),
             isRead: false
           };
+          if (data.status === 'offline') toast.error(newNotification.message);
+          else toast.success(newNotification.message);
         } else if (data.type === 'system') {
           newNotification = {
             id: Date.now(),
@@ -65,6 +70,7 @@ const TopBar = () => {
             time: new Date().toLocaleTimeString(),
             isRead: false
           };
+          toast(newNotification.message, { icon: 'ℹ️' });
         }
 
         if (newNotification) {
@@ -95,28 +101,29 @@ const TopBar = () => {
       case 'alert':
         return <ShieldAlert className={`w-5 h-5 ${severity === 'critical' ? 'text-danger' : severity === 'high' ? 'text-warning' : 'text-primary'}`} />;
       case 'agent':
-        return <Activity className={`w-5 h-5 ${severity === 'warning' ? 'text-warning' : 'text-green-500'}`} />;
+        return <Activity className={`w-5 h-5 ${severity === 'warning' ? 'text-warning' : 'text-accent'}`} />;
       case 'system':
         return <Server className={`w-5 h-5 ${severity === 'warning' ? 'text-warning' : 'text-primary'}`} />;
       default:
-        return <Info className="w-5 h-5 text-gray-400" />;
+        return <Info className="w-5 h-5 text-textMuted" />;
     }
   };
 
   return (
-    <header className="h-16 bg-surface/90 backdrop-blur-md border-b border-border flex items-center justify-between px-6 z-10 sticky top-0 shadow-sm">
-      {/* Search */}
+    <header className="h-16 bg-surface/30 backdrop-blur-xl border-b border-border/50 flex items-center justify-between px-6 z-10 sticky top-0">
+      {/* Search Hint */}
       <div className="flex-1 max-w-xl">
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-textMuted group-focus-within:text-primary transition-colors" />
-          <input 
-            type="text" 
-            placeholder="Search endpoints, alerts, IPs, hashes (Ctrl+K)..." 
-            className="w-full bg-background/50 border border-border rounded-xl pl-10 pr-4 py-2 text-sm text-textMain focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 placeholder:text-textMuted/70 shadow-inner"
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center space-x-1">
-            <kbd className="px-2 py-0.5 text-xs font-mono bg-surface rounded border border-border text-textMuted">Ctrl</kbd>
-            <kbd className="px-2 py-0.5 text-xs font-mono bg-surface rounded border border-border text-textMuted">K</kbd>
+        <div 
+          className="relative group cursor-pointer"
+          onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+        >
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textMuted group-hover:text-primary transition-colors" />
+          <div className="w-full bg-surfaceHighlight/30 border border-border/50 rounded-lg pl-10 pr-4 py-1.5 text-sm text-textMuted group-hover:bg-surfaceHighlight/50 transition-all duration-300 flex items-center justify-between shadow-inner">
+            <span>Search alerts, endpoints, rules...</span>
+            <div className="flex items-center space-x-1">
+              <Command className="w-3 h-3" />
+              <kbd className="font-mono text-[10px]">K</kbd>
+            </div>
           </div>
         </div>
       </div>
@@ -125,7 +132,8 @@ const TopBar = () => {
       <div className="flex items-center space-x-4 ml-6 relative">
         <div className="relative" ref={dropdownRef}>
           <button 
-            className="relative p-2 text-textMuted hover:text-textMain hover:bg-surfaceHighlight rounded-xl transition-all duration-200"
+            className="relative p-2 text-textMuted hover:text-textMain hover:bg-surfaceHighlight/50 rounded-xl transition-all duration-200 focus-visible"
+            aria-label="Notifications"
             onClick={() => {
               setShowDropdown(!showDropdown);
               if (!showDropdown) setHasUnread(false);
@@ -133,48 +141,56 @@ const TopBar = () => {
           >
             <Bell className="w-5 h-5" />
             {hasUnread && (
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-danger border-2 border-surface rounded-full animate-pulse"></span>
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-danger rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse"></span>
             )}
           </button>
           
           {/* Notifications Dropdown */}
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-80 bg-surfaceHighlight border border-border rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[400px]">
-              <div className="p-3 border-b border-border flex justify-between items-center bg-surface/50">
-                <h3 className="text-sm font-semibold text-textMain">Notifications</h3>
-                <button onClick={markAllRead} className="text-xs text-primary hover:text-primaryHover">Mark all as read</button>
-              </div>
-              <div className="overflow-y-auto flex-1">
-                {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-sm text-textMuted">No notifications</div>
-                ) : (
-                  notifications.map(notif => (
-                    <div key={notif.id} className={`p-3 border-b border-border/50 hover:bg-surface/50 flex items-start ${!notif.isRead ? 'bg-primary/5' : ''}`}>
-                      <div className="mr-3 mt-0.5">
-                        {getIconForType(notif.type, notif.severity)}
+          <AnimatePresence>
+            {showDropdown && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute right-0 mt-2 w-80 glass-panel z-50 overflow-hidden flex flex-col max-h-[400px] shadow-2xl origin-top-right"
+              >
+                <div className="p-3 border-b border-border/50 flex justify-between items-center bg-surfaceHighlight/30 backdrop-blur-md">
+                  <h3 className="text-sm font-semibold text-textMain">Notifications</h3>
+                  <button onClick={markAllRead} className="text-xs text-primary hover:text-primaryHover transition-colors">Mark all as read</button>
+                </div>
+                <div className="overflow-y-auto flex-1 custom-scrollbar">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-textMuted">No notifications</div>
+                  ) : (
+                    notifications.map(notif => (
+                      <div key={notif.id} className={`p-3 border-b border-border/30 hover:bg-surfaceHighlight/30 transition-colors flex items-start ${!notif.isRead ? 'bg-primary/5' : ''}`}>
+                        <div className="mr-3 mt-0.5">
+                          {getIconForType(notif.type, notif.severity)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-textMain">{notif.title}</p>
+                          <p className="text-xs text-textMuted mt-0.5">{notif.message}</p>
+                          <p className="text-[10px] text-textMuted mt-1 opacity-70">{notif.time}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-textMain">{notif.title}</p>
-                        <p className="text-xs text-textMuted mt-0.5">{notif.message}</p>
-                        <p className="text-[10px] text-textMuted mt-1">{notif.time}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
-        <div className="h-8 w-px bg-border"></div>
+        <div className="h-6 w-px bg-border/50"></div>
         
-        <button className="flex items-center space-x-2 p-1.5 hover:bg-surfaceHighlight rounded-xl transition-all duration-200">
+        <button className="flex items-center space-x-3 p-1.5 hover:bg-surfaceHighlight/50 rounded-xl transition-all duration-200 focus-visible group">
           <div className="text-right hidden md:block">
-            <p className="text-sm font-medium text-textMain">{user?.username || 'User'}</p>
+            <p className="text-sm font-semibold text-textMain group-hover:text-primary transition-colors">{user?.username || 'User'}</p>
             <p className="text-xs text-textMuted">{user?.role || 'Guest'}</p>
           </div>
-          <div className="w-8 h-8 rounded-full bg-surfaceHighlight flex items-center justify-center border border-border">
-            <User className="w-4 h-4 text-textMuted" />
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-surfaceHighlight to-border flex items-center justify-center border border-border/50 shadow-inner group-hover:border-primary/50 transition-colors">
+            <User className="w-4 h-4 text-textMain" />
           </div>
         </button>
       </div>

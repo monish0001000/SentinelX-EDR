@@ -5,13 +5,13 @@ import {
   Activity, 
   Crosshair,
   TrendingUp,
-  Cpu,
-  Globe,
-  Database
+  Database,
+  ArrowRight
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import StatCard from '../components/common/StatCard';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { getMetrics, getMttd, getAlerts } from '../services/api';
 
 const Dashboard = () => {
@@ -63,36 +63,62 @@ const Dashboard = () => {
     { name: 'Defense Evasion', value: 92 },
     { name: 'Credential Access', value: 54 },
     { name: 'Lateral Movement', value: 38 },
-  ]; // This could be replaced with real data from endpoint coverage metrics if available
+  ];
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full"><div className="animate-pulse text-primary">Loading Dashboard...</div></div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh]">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <p className="mt-4 text-textMuted font-mono animate-pulse">Initializing SentinelX Core...</p>
+      </div>
+    );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6 pb-12"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-textMain">SOC Dashboard</h1>
-          <p className="text-textMuted mt-1">Real-time overview of your security posture.</p>
+          <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-textMain to-textMuted">SOC Dashboard</h1>
+          <p className="text-textMuted mt-2 font-medium">Global Threat Telemetry & Analysis</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <span className="flex items-center text-sm font-medium bg-accent/10 text-accent px-3 py-1.5 rounded-lg border border-accent/20">
-            <span className="w-2 h-2 rounded-full bg-accent mr-2 animate-pulse"></span>
-            System Healthy
-          </span>
-          <button className="btn-secondary flex items-center">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center text-sm font-bold bg-surface/50 backdrop-blur-md px-4 py-2 rounded-xl border border-border/50 shadow-sm">
+            <span className="w-2.5 h-2.5 rounded-full bg-accent mr-3 shadow-[0_0_10px_#10B981] animate-pulse"></span>
+            <span className="text-textMain">Core Systems Online</span>
+          </div>
+          <button className="btn-primary flex items-center shadow-primary/20">
             <Database className="w-4 h-4 mr-2" />
             Generate Report
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
-          title="Active Alerts" 
+          title="Active Threats" 
           value={metrics.total_alerts?.toString() || "0"} 
           icon={ShieldAlert} 
           trend="up" 
@@ -100,7 +126,7 @@ const Dashboard = () => {
           colorClass="bg-danger/10 text-danger"
         />
         <StatCard 
-          title="Monitored Endpoints" 
+          title="Monitored Agents" 
           value={metrics.endpoint_coverage?.total?.toString() || "0"} 
           icon={Server} 
           trend="up" 
@@ -108,7 +134,7 @@ const Dashboard = () => {
           colorClass="bg-primary/10 text-primary"
         />
         <StatCard 
-          title="Events Analyzed" 
+          title="Events Processed" 
           value="1.2M" 
           icon={Activity} 
           trend="up" 
@@ -116,124 +142,154 @@ const Dashboard = () => {
           colorClass="bg-secondary/10 text-secondary"
         />
         <StatCard 
-          title="Mean Time To Detect" 
+          title="MTTD Average" 
           value={mttd.mttd_formatted} 
           icon={TrendingUp} 
           trend="down" 
           trendValue="-30s"
           colorClass="bg-accent/10 text-accent"
         />
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Chart */}
-        <div className="glass-panel p-6 lg:col-span-2">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-textMain">Alert Trends (24h)</h3>
-            <select className="bg-surface border border-border rounded-lg px-3 py-1 text-sm text-textMain focus:outline-none focus:ring-1 focus:ring-primary">
+        <motion.div variants={itemVariants} className="glass-panel-hover p-6 lg:col-span-2 relative overflow-hidden group">
+          <div className="absolute -left-32 -top-32 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500"></div>
+          
+          <div className="flex items-center justify-between mb-8 relative z-10">
+            <h3 className="text-xl font-bold text-textMain tracking-tight">Threat Velocity (24h)</h3>
+            <select className="bg-surface/50 backdrop-blur-md border border-border/50 rounded-xl px-4 py-2 text-sm text-textMain font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-inner">
               <option>Last 24 Hours</option>
               <option>Last 7 Days</option>
               <option>Last 30 Days</option>
             </select>
           </div>
-          <div className="h-80 w-full">
+          
+          <div className="h-[320px] w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={metrics.alerts_trend.length > 0 ? metrics.alerts_trend : [{time: 'Now', critical:0, high:0, medium:0}]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorCritical" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--color-danger)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--color-danger)" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorHigh" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--color-warning)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--color-warning)" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorMedium" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
-                <XAxis dataKey="date" stroke="#9CA3AF" tick={{fontSize: 12}} axisLine={false} tickLine={false} />
-                <YAxis stroke="#9CA3AF" tick={{fontSize: 12}} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="4 4" stroke="var(--color-border)" opacity={0.4} vertical={false} />
+                <XAxis dataKey="date" stroke="var(--color-text-muted)" tick={{fontSize: 12, fontWeight: 500}} axisLine={false} tickLine={false} dy={10} />
+                <YAxis stroke="var(--color-text-muted)" tick={{fontSize: 12, fontWeight: 500}} axisLine={false} tickLine={false} dx={-10} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '0.5rem' }}
-                  itemStyle={{ color: '#F9FAFB' }}
+                  contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '0.75rem', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)', padding: '12px' }}
+                  itemStyle={{ color: 'var(--color-text-main)', fontWeight: 600, padding: '2px 0' }}
+                  labelStyle={{ color: 'var(--color-text-muted)', marginBottom: '8px' }}
                 />
-                <Area type="monotone" dataKey="critical" stroke="#EF4444" strokeWidth={2} fillOpacity={1} fill="url(#colorCritical)" />
-                <Area type="monotone" dataKey="high" stroke="#F59E0B" strokeWidth={2} fillOpacity={1} fill="url(#colorHigh)" />
-                <Area type="monotone" dataKey="medium" stroke="#3B82F6" strokeWidth={2} fillOpacity={0.1} fill="#3B82F6" />
+                <Area type="monotone" dataKey="critical" stroke="var(--color-danger)" strokeWidth={3} fillOpacity={1} fill="url(#colorCritical)" />
+                <Area type="monotone" dataKey="high" stroke="var(--color-warning)" strokeWidth={3} fillOpacity={1} fill="url(#colorHigh)" />
+                <Area type="monotone" dataKey="medium" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorMedium)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* MITRE ATT&CK Coverage */}
-        <div className="glass-panel p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-textMain">MITRE ATT&CK</h3>
-            <button className="text-primary hover:text-primaryHover text-sm font-medium">View Matrix</button>
+        <motion.div variants={itemVariants} className="glass-panel-hover p-6 flex flex-col relative overflow-hidden group">
+          <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-secondary/10 rounded-full blur-3xl group-hover:bg-secondary/20 transition-colors duration-500"></div>
+          
+          <div className="flex items-center justify-between mb-8 relative z-10">
+            <h3 className="text-xl font-bold text-textMain tracking-tight">MITRE ATT&CK</h3>
+            <button className="flex items-center text-secondary hover:text-white transition-colors text-sm font-semibold group/btn">
+              Matrix <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
           </div>
-          <div className="h-80 w-full">
+          
+          <div className="flex-1 w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={mitreData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={true} vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.3} horizontal={true} vertical={false} />
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" width={110} stroke="#9CA3AF" tick={{fontSize: 11}} axisLine={false} tickLine={false} />
+                <YAxis dataKey="name" type="category" width={115} stroke="var(--color-text-main)" tick={{fontSize: 12, fontWeight: 500}} axisLine={false} tickLine={false} />
                 <Tooltip 
-                  cursor={{fill: '#1F2937'}}
-                  contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '0.5rem' }}
+                  cursor={{fill: 'var(--color-surface-highlight)'}}
+                  contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '0.75rem', padding: '8px 12px' }}
                 />
-                <Bar dataKey="value" fill="#8B5CF6" radius={[0, 4, 4, 0]} barSize={16}>
-                  {
-                    mitreData.map((entry, index) => (
-                      <cell key={`cell-${index}`} fill={entry.value > 80 ? '#EF4444' : entry.value > 60 ? '#F59E0B' : '#8B5CF6'} />
-                    ))
-                  }
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                  {mitreData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.value > 80 ? 'var(--color-danger)' : entry.value > 60 ? 'var(--color-warning)' : 'var(--color-secondary)'} />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Alerts List */}
-        <div className="glass-panel p-6">
+        <motion.div variants={itemVariants} className="glass-panel p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-textMain">Recent Alerts</h3>
-            <button className="text-primary hover:text-primaryHover text-sm font-medium">View All</button>
+            <h3 className="text-xl font-bold text-textMain tracking-tight">Active Investigations</h3>
+            <button className="flex items-center text-primary hover:text-white transition-colors text-sm font-semibold group/btn">
+              View All <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {recentAlerts.length > 0 ? recentAlerts.map((alert) => (
-              <div key={alert.id} className="flex items-start p-3 bg-surfaceHighlight/50 rounded-lg hover:bg-surfaceHighlight transition-colors border border-border/50">
-                <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                  alert.severity === 'critical' ? 'bg-danger' : 
-                  alert.severity === 'high' ? 'bg-warning' : 
-                  alert.severity === 'medium' ? 'bg-primary' : 'bg-accent'
+              <motion.div 
+                key={alert.id} 
+                whileHover={{ scale: 1.01, x: 5 }}
+                className="flex items-start p-4 bg-surfaceHighlight/30 backdrop-blur-sm rounded-xl hover:bg-surfaceHighlight/50 transition-colors border border-border/40 group/alert cursor-pointer"
+              >
+                <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-sm ${
+                  alert.severity === 'critical' ? 'bg-danger shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 
+                  alert.severity === 'high' ? 'bg-warning shadow-[0_0_8px_rgba(245,158,11,0.8)]' : 
+                  alert.severity === 'medium' ? 'bg-primary shadow-[0_0_8px_rgba(59,130,246,0.8)]' : 'bg-accent'
                 }`}></div>
-                <div className="ml-3 flex-1">
+                <div className="ml-4 flex-1">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-textMain">{alert.title}</p>
-                    <span className="text-xs text-textMuted">{new Date(alert.detected_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <p className="text-sm font-bold text-textMain">{alert.title}</p>
+                    <span className="text-xs font-mono text-textMuted bg-surface/50 px-2 py-1 rounded-md border border-border/50">
+                      {new Date(alert.detected_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </span>
                   </div>
-                  <p className="text-xs text-textMuted mt-1">{alert.endpoint_id} • {alert.mitre_tactic || alert.rule_type}</p>
+                  <div className="flex items-center mt-2 space-x-2">
+                    <span className="text-xs text-textMuted bg-surface px-2 py-0.5 rounded border border-border/50">{alert.endpoint_id}</span>
+                    <span className="text-xs text-textMuted bg-surface px-2 py-0.5 rounded border border-border/50">{alert.mitre_tactic || alert.rule_type}</span>
+                  </div>
                 </div>
-                <button className="ml-4 text-xs font-medium text-primary hover:text-primaryHover">Investigate</button>
-              </div>
+                <div className="ml-4 opacity-0 group-hover/alert:opacity-100 transition-opacity self-center">
+                  <button className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors">
+                    <Crosshair className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
             )) : (
-              <div className="text-center py-8 text-textMuted text-sm">No recent alerts found.</div>
+              <div className="text-center py-12 text-textMuted text-sm font-medium border border-dashed border-border/50 rounded-xl bg-surfaceHighlight/10">
+                No active threats detected. System secure.
+              </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Live Activity Feed */}
-        <div className="glass-panel p-6 flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-textMain">Live Activity Feed</h3>
+        <motion.div variants={itemVariants} className="glass-panel flex flex-col relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-50"></div>
+          
+          <div className="p-6 pb-2">
+            <h3 className="text-xl font-bold text-textMain tracking-tight">Live Activity Stream</h3>
           </div>
           <div className="flex-1 overflow-hidden">
             <ActivityFeed />
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { 
   ShieldAlert, 
   Activity, 
@@ -13,7 +14,8 @@ import {
   Radar,
   List,
   ActivityIcon,
-  LogOut
+  LogOut,
+  Command
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -51,25 +53,29 @@ const Sidebar = () => {
 
   return (
     <aside className={cn(
-      "h-full bg-surface border-r border-border flex flex-col transition-all duration-300 relative z-20",
+      "h-full bg-surface/40 backdrop-blur-xl border-r border-border/50 flex flex-col transition-all duration-300 relative z-20 shadow-2xl",
       isOpen ? "w-64" : "w-20"
     )}>
       {/* Logo Area */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-border bg-surfaceHighlight/30">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-border/50 bg-surfaceHighlight/20">
         <div className={cn("flex items-center overflow-hidden transition-all duration-300", isOpen ? "w-full opacity-100" : "w-0 opacity-0")}>
-          <ShieldAlert className="w-8 h-8 text-primary mr-3" />
-          <span className="font-bold text-xl tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">SentinelX</span>
+          <div className="relative w-8 h-8 mr-3 flex items-center justify-center">
+            <div className="absolute inset-0 bg-primary/20 blur-md rounded-full animate-pulse-slow"></div>
+            <ShieldAlert className="w-6 h-6 text-primary relative z-10" />
+          </div>
+          <span className="font-bold text-xl tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">SentinelX</span>
         </div>
         <button 
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg hover:bg-border text-textMuted hover:text-textMain transition-colors flex-shrink-0"
+          className="p-2 rounded-lg hover:bg-surfaceHighlight text-textMuted hover:text-textMain transition-colors flex-shrink-0 focus-visible"
+          aria-label="Toggle Sidebar"
         >
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-2">
+      <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1" aria-label="Main Navigation">
         {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path || 
                           (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -79,48 +85,67 @@ const Sidebar = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) => cn(
-                "flex items-center px-3 py-3 rounded-xl transition-all duration-200 group relative",
+                "flex items-center px-3 py-3 rounded-xl transition-all duration-200 group relative focus-visible",
                 isActive 
-                  ? "bg-primary/10 text-primary" 
-                  : "text-textMuted hover:bg-surfaceHighlight hover:text-textMain"
+                  ? "text-primary" 
+                  : "text-textMuted hover:text-textMain"
               )}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="activeNavIndicator"
+                  className="absolute inset-0 bg-primary/10 border border-primary/20 rounded-xl"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              
               <item.icon className={cn(
-                "w-6 h-6 flex-shrink-0 transition-transform duration-200",
-                isActive ? "text-primary scale-110" : "group-hover:scale-110"
+                "w-5 h-5 flex-shrink-0 transition-transform duration-200 relative z-10",
+                isActive ? "scale-110" : "group-hover:scale-110"
               )} />
               
               <span className={cn(
-                "ml-3 font-medium whitespace-nowrap transition-all duration-300",
+                "ml-3 font-medium whitespace-nowrap transition-all duration-300 relative z-10",
                 isOpen ? "opacity-100 w-auto" : "opacity-0 w-0 hidden"
               )}>
                 {item.label}
               </span>
-              
-              {isActive && isOpen && (
-                <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-primary animate-pulse-slow"></div>
-              )}
             </NavLink>
           );
         })}
       </nav>
       
+      {/* Search / Command Hint */}
+      {isOpen && (
+        <div className="px-4 py-3 mb-2">
+          <div className="flex items-center justify-between bg-surfaceHighlight/30 border border-border/50 rounded-lg px-3 py-2 text-xs text-textMuted cursor-pointer hover:bg-surfaceHighlight/50 transition-colors">
+            <span className="flex items-center"><Command className="w-3 h-3 mr-1" /> Search</span>
+            <kbd className="bg-surfaceHighlight rounded px-1.5 py-0.5 border border-border">Ctrl+K</kbd>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Profile/Status */}
-      <div className="p-4 border-t border-border bg-surfaceHighlight/20">
+      <div className="p-4 border-t border-border/50 bg-surfaceHighlight/10 backdrop-blur-md">
         <div className={cn("flex items-center justify-between", !isOpen && "justify-center")}>
           <div className="flex items-center overflow-hidden">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
-              <span className="font-bold text-white">{user?.username?.charAt(0).toUpperCase()}</span>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 shadow-[0_0_10px_rgba(var(--color-primary-rgb),0.3)]">
+              <span className="font-bold text-white shadow-sm">{user?.username?.charAt(0).toUpperCase()}</span>
             </div>
             <div className={cn("ml-3 overflow-hidden transition-all duration-300", isOpen ? "w-auto opacity-100" : "w-0 opacity-0")}>
-              <p className="text-sm font-medium text-textMain whitespace-nowrap">{user?.username}</p>
-              <p className="text-xs text-accent flex items-center whitespace-nowrap">
+              <p className="text-sm font-semibold text-textMain whitespace-nowrap">{user?.username}</p>
+              <p className="text-xs text-accent flex items-center whitespace-nowrap font-medium">
                 {user?.role}
               </p>
             </div>
           </div>
           {isOpen && (
-            <button onClick={handleLogout} className="p-2 text-textMuted hover:text-red-400 transition-colors">
+            <button 
+              onClick={handleLogout} 
+              className="p-2 text-textMuted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors focus-visible"
+              aria-label="Log Out"
+            >
               <LogOut className="w-5 h-5" />
             </button>
           )}

@@ -1,37 +1,133 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-background text-textMain font-sans antialiased;
+  :root {
+    /* Theme: Enterprise Dark (Default) */
+    --color-bg: 11 15 25;
+    --color-surface: 17 24 39;
+    --color-surface-highlight: 31 41 55;
+    --color-primary: 59 130 246;
+    --color-primary-hover: 37 99 235;
+    --color-secondary: 139 92 246;
+    --color-accent: 16 185 129;
+    --color-danger: 239 68 68;
+    --color-warning: 245 158 11;
+    --color-text-main: 249 250 251;
+    --color-text-muted: 156 163 175;
+    --color-border: 55 65 81;
   }
-  
-  /* Custom scrollbar for dark theme */
+
+  .theme-midnight-blue {
+    --color-bg: 0 9 20;
+    --color-surface: 0 21 41;
+    --color-surface-highlight: 0 39 77;
+    --color-primary: 0 136 255;
+    --color-primary-hover: 0 102 204;
+    --color-secondary: 114 46 209;
+    --color-accent: 0 230 118;
+    --color-danger: 255 77 79;
+    --color-warning: 250 173 20;
+    --color-text-main: 255 255 255;
+    --color-text-muted: 163 184 204;
+    --color-border: 0 51 102;
+  }
+
+  .theme-soc-green {
+    --color-bg: 10 18 13;
+    --color-surface: 16 33 21;
+    --color-surface-highlight: 26 54 34;
+    --color-primary: 16 185 129;
+    --color-primary-hover: 5 150 105;
+    --color-secondary: 14 165 233;
+    --color-accent: 52 211 153;
+    --color-danger: 239 68 68;
+    --color-warning: 245 158 11;
+    --color-text-main: 236 253 245;
+    --color-text-muted: 167 243 208;
+    --color-border: 36 76 49;
+  }
+
+  .theme-purple {
+    --color-bg: 15 10 25;
+    --color-surface: 24 16 39;
+    --color-surface-highlight: 38 26 61;
+    --color-primary: 168 85 247;
+    --color-primary-hover: 147 51 234;
+    --color-secondary: 236 72 153;
+    --color-accent: 16 185 129;
+    --color-danger: 239 68 68;
+    --color-warning: 245 158 11;
+    --color-text-main: 245 243 255;
+    --color-text-muted: 221 214 254;
+    --color-border: 59 42 94;
+  }
+
+  .theme-high-contrast {
+    --color-bg: 0 0 0;
+    --color-surface: 17 17 17;
+    --color-surface-highlight: 34 34 34;
+    --color-primary: 255 255 0;
+    --color-primary-hover: 204 204 0;
+    --color-secondary: 255 0 255;
+    --color-accent: 0 255 0;
+    --color-danger: 255 0 0;
+    --color-warning: 255 165 0;
+    --color-text-main: 255 255 255;
+    --color-text-muted: 204 204 204;
+    --color-border: 85 85 85;
+  }
+
+  body {
+    @apply bg-background text-textMain font-sans antialiased overflow-x-hidden;
+  }
+
+  /* Focus indicators for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-surface;
+    @apply bg-background;
   }
   ::-webkit-scrollbar-thumb {
     @apply bg-border rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500;
+    @apply bg-textMuted;
+  }
+
+  /* Selection color */
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-text-main);
   }
 }
 
 @layer components {
   .glass-panel {
-    @apply bg-surface/80 backdrop-blur-md border border-border rounded-xl shadow-lg;
+    @apply bg-surface/70 backdrop-blur-xl border border-border/50 rounded-xl shadow-lg;
+  }
+  
+  .glass-panel-hover {
+    @apply glass-panel hover:bg-surface/90 hover:border-border/80 transition-all duration-300;
   }
   
   .btn-primary {
-    @apply bg-primary hover:bg-primaryHover text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 shadow-lg shadow-primary/20;
+    @apply bg-primary hover:bg-primaryHover text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.3)] hover:shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.5)];
   }
   
   .btn-secondary {
@@ -43,6 +139,6 @@
   }
   
   .input-field {
-    @apply bg-background border border-border rounded-lg px-4 py-2 text-textMain focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
+    @apply bg-surface/50 border border-border rounded-lg px-4 py-2 text-textMain focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 backdrop-blur-sm;
   }
 }
