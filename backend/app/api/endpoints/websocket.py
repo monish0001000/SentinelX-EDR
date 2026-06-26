@@ -9,10 +9,13 @@ from app.core.websocket_manager import ws_manager as manager
 
 router = APIRouter()
 
+import uuid
+
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket) -> Any:
     # Accept without specific endpoint_id for dashboard global view
-    await manager.connect(websocket)
+    client_id = str(uuid.uuid4())
+    await manager.connect(websocket, client_id=client_id)
     try:
         while True:
             data = await websocket.receive_text()
@@ -20,4 +23,4 @@ async def websocket_endpoint(websocket: WebSocket) -> Any:
             if data == "ping":
                 await websocket.send_text("pong")
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        await manager.disconnect(client_id)
