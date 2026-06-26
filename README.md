@@ -271,16 +271,13 @@ THREAT_INTEL_API_KEY=your-ti-key
 
 ---
 
-## 📸 Screenshots
+## 📸 Demo & Screenshots
 
-> **Note:** Screenshots are currently placeholders while we gather final captures of the Phase 13 UI. Place actual images in `docs/images/`.
-
-- **Live Incident Response (Demo)**: `docs/images/demo.gif`
-- **Dashboard Overview**: `docs/images/dashboard.png`
-- **Interactive Threat Hunting**: `docs/images/threat-hunting.png`
-- **AI Investigations**: `docs/images/investigations.png`
-- **Audit Logs**: `docs/images/audit.png`
-- **Health Dashboard**: `docs/images/health.png`
+<div align="center">
+  <video src="https://github.com/monish0001000/SentinelX-EDR/raw/main/docs/demo.mp4" controls="controls" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+  </video>
+  <p><i>SentinelX EDR Live Demonstration</i></p>
+</div>
 
 ---
 
